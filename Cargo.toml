@@ -9,5 +9,6 @@ repository = "https://github.com/sw1nn/verandah"
 [dependencies]
 abi_stable = "0.11"
 serde = { version = "1", features = ["derive"] }
+toml = "0.9"
 tracing = "0.1"
 tracing-subscriber = "0.3"

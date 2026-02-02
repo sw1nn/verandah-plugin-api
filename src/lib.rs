@@ -276,8 +276,12 @@ impl std::error::Error for PluginError {}
 /// Result type for plugin operations
 pub type PluginResult<T> = RResult<T, PluginError>;
 
-/// Configuration passed to plugins
-pub type PluginConfig = RHashMap<RString, RString>;
+/// Configuration passed to plugins as serialized TOML
+///
+/// Plugins can deserialize this using `toml::from_str(&config)` to get
+/// their typed configuration struct directly. This allows for nested
+/// configuration values like `colors = {fg = "#fff", bg = "#000"}`.
+pub type PluginConfig = RString;
 
 /// The main widget plugin trait
 ///

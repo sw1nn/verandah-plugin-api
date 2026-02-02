@@ -1,6 +1,6 @@
-use abi_stable::std_types::RHashMap;
+use abi_stable::std_types::RString;
 use serde::Deserialize;
-use verandah_plugin_api::{parse_config, PluginError, PluginResult};
+use verandah_plugin_api::{PluginError, PluginResult, parse_config};
 
 #[test]
 fn test_parse_string_config() -> Result<(), PluginError> {
@@ -9,10 +9,9 @@ fn test_parse_string_config() -> Result<(), PluginError> {
         name: String,
     }
 
-    let mut map = RHashMap::new();
-    map.insert("name".into(), "test".into());
+    let toml = RString::from("name = \"test\"");
 
-    let result: Config = parse_config(&map).into_result()?;
+    let result: Config = parse_config(&toml).into_result()?;
     assert_eq!(
         result,
         Config {
@@ -31,12 +30,15 @@ fn test_parse_numeric_config() -> Result<(), PluginError> {
         rate: f64,
     }
 
-    let mut map = RHashMap::new();
-    map.insert("interval".into(), "1000".into());
-    map.insert("count".into(), "-5".into());
-    map.insert("rate".into(), "3.14".into());
+    let toml = RString::from(
+        r#"
+interval = 1000
+count = -5
+rate = 3.14
+"#,
+    );
 
-    let result: Config = parse_config(&map).into_result()?;
+    let result: Config = parse_config(&toml).into_result()?;
     assert_eq!(
         result,
         Config {
@@ -56,11 +58,14 @@ fn test_parse_bool_config() -> Result<(), PluginError> {
         disabled: bool,
     }
 
-    let mut map = RHashMap::new();
-    map.insert("enabled".into(), "true".into());
-    map.insert("disabled".into(), "0".into());
+    let toml = RString::from(
+        r#"
+enabled = true
+disabled = false
+"#,
+    );
 
-    let result: Config = parse_config(&map).into_result()?;
+    let result: Config = parse_config(&toml).into_result()?;
     assert_eq!(
         result,
         Config {
@@ -89,10 +94,9 @@ fn test_parse_default_config() -> Result<(), PluginError> {
         }
     }
 
-    let mut map = RHashMap::new();
-    map.insert("name".into(), "custom".into());
+    let toml = RString::from("name = \"custom\"");
 
-    let result: Config = parse_config(&map).into_result()?;
+    let result: Config = parse_config(&toml).into_result()?;
     assert_eq!(
         result,
         Config {
@@ -117,10 +121,9 @@ fn test_parse_enum_config() -> Result<(), PluginError> {
         target_type: TargetType,
     }
 
-    let mut map = RHashMap::new();
-    map.insert("target_type".into(), "sink".into());
+    let toml = RString::from("target_type = \"sink\"");
 
-    let result: Config = parse_config(&map).into_result()?;
+    let result: Config = parse_config(&toml).into_result()?;
     assert_eq!(
         result,
         Config {
@@ -138,10 +141,9 @@ fn test_parse_renamed_field() -> Result<(), PluginError> {
         target_type: String,
     }
 
-    let mut map = RHashMap::new();
-    map.insert("type".into(), "source".into());
+    let toml = RString::from("type = \"source\"");
 
-    let result: Config = parse_config(&map).into_result()?;
+    let result: Config = parse_config(&toml).into_result()?;
     assert_eq!(
         result,
         Config {
@@ -158,9 +160,100 @@ fn test_invalid_numeric_fails() {
         interval: u64,
     }
 
-    let mut map = RHashMap::new();
-    map.insert("interval".into(), "not_a_number".into());
+    let toml = RString::from("interval = \"not_a_number\"");
 
-    let result: PluginResult<Config> = parse_config(&map);
+    let result: PluginResult<Config> = parse_config(&toml);
     assert!(result.is_err());
+}
+
+#[test]
+fn test_nested_config() -> Result<(), PluginError> {
+    #[derive(Deserialize, Debug, PartialEq)]
+    struct Colors {
+        fg: String,
+        bg: String,
+    }
+
+    #[derive(Deserialize, Debug, PartialEq)]
+    struct Config {
+        name: String,
+        colors: Colors,
+    }
+
+    let toml = RString::from(
+        r##"
+name = "my-widget"
+colors = {fg = "#ffffff", bg = "#000000"}
+"##,
+    );
+
+    let result: Config = parse_config(&toml).into_result()?;
+    assert_eq!(
+        result,
+        Config {
+            name: "my-widget".to_string(),
+            colors: Colors {
+                fg: "#ffffff".to_string(),
+                bg: "#000000".to_string(),
+            }
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn test_nested_table_config() -> Result<(), PluginError> {
+    #[derive(Deserialize, Debug, PartialEq)]
+    struct Colors {
+        fg: String,
+        bg: String,
+    }
+
+    #[derive(Deserialize, Debug, PartialEq)]
+    struct Config {
+        name: String,
+        colors: Colors,
+    }
+
+    let toml = RString::from(
+        r##"
+name = "my-widget"
+
+[colors]
+fg = "#ffffff"
+bg = "#000000"
+"##,
+    );
+
+    let result: Config = parse_config(&toml).into_result()?;
+    assert_eq!(
+        result,
+        Config {
+            name: "my-widget".to_string(),
+            colors: Colors {
+                fg: "#ffffff".to_string(),
+                bg: "#000000".to_string(),
+            }
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn test_array_config() -> Result<(), PluginError> {
+    #[derive(Deserialize, Debug, PartialEq)]
+    struct Config {
+        tags: Vec<String>,
+    }
+
+    let toml = RString::from(r#"tags = ["a", "b", "c"]"#);
+
+    let result: Config = parse_config(&toml).into_result()?;
+    assert_eq!(
+        result,
+        Config {
+            tags: vec!["a".to_string(), "b".to_string(), "c".to_string()]
+        }
+    );
+    Ok(())
 }
