@@ -1,0 +1,7 @@
+tag_prefix = "v"
+skip_untracked = true
+ignore_merge_commits = true
+
+[changelog]
+path = "CHANGELOG.md"
+authors = []
