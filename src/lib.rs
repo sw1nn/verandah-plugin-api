@@ -157,6 +157,34 @@ pub enum PluginWidgetState {
     Numeric(f64),
 }
 
+/// Response from poll_state containing state and optional interval hint
+#[repr(C)]
+#[derive(StableAbi, Clone, Debug)]
+pub struct PluginPollResponse {
+    /// The current widget state
+    pub state: PluginWidgetState,
+    /// Optional interval hint for next poll (None = use default interval)
+    pub interval_hint: abi_stable::std_types::ROption<PluginDuration>,
+}
+
+impl PluginPollResponse {
+    /// Create a response with just state (uses default interval)
+    pub fn state(state: PluginWidgetState) -> Self {
+        PluginPollResponse {
+            state,
+            interval_hint: abi_stable::std_types::ROption::RNone,
+        }
+    }
+
+    /// Create a response with state and interval hint
+    pub fn with_interval(state: PluginWidgetState, interval: PluginDuration) -> Self {
+        PluginPollResponse {
+            state,
+            interval_hint: abi_stable::std_types::ROption::RSome(interval),
+        }
+    }
+}
+
 /// FFI-safe duration representation
 #[repr(C)]
 #[derive(StableAbi, Clone, Copy, Debug)]
@@ -300,8 +328,11 @@ pub trait WidgetPlugin: Send {
     /// Returns the current configuration
     fn config(&self) -> PluginConfig;
 
-    /// Poll for current state
-    fn poll_state(&mut self) -> PluginResult<PluginWidgetState>;
+    /// Poll for current state and optional interval hint
+    ///
+    /// Returns the current state and optionally a hint for when to poll next.
+    /// If no interval hint is provided, the default interval is used.
+    fn poll_state(&mut self) -> PluginResult<PluginPollResponse>;
 
     /// Render the widget to an image
     ///
@@ -351,8 +382,8 @@ impl RootModule for PluginModRef {
     const VERSION_STRINGS: abi_stable::sabi_types::VersionStrings = package_version_strings!();
 }
 
-/// Current plugin API version
-pub const PLUGIN_API_VERSION: &str = "0.4.0";
+/// Current plugin API version (derived from crate version)
+pub const PLUGIN_API_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Prelude module for convenient imports
 ///
@@ -369,7 +400,7 @@ pub mod prelude {
 
     pub use crate::{
         PLUGIN_API_VERSION, PluginConfig, PluginDuration, PluginError, PluginImage,
-        PluginImageSize, PluginMod, PluginModRef, PluginResult, PluginWidgetState, WidgetPlugin,
-        WidgetPlugin_TO, parse_config, set_logger_impl,
+        PluginImageSize, PluginMod, PluginModRef, PluginPollResponse, PluginResult,
+        PluginWidgetState, WidgetPlugin, WidgetPlugin_TO, parse_config, set_logger_impl,
     };
 }
