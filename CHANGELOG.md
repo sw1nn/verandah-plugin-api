@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.3.0 - 2026-02-24
+#### Features
+- (**deps**) update deps and cog config - (25fa8b8) - Neale Swinnerton
+
+- - -
+
 ## v0.2.0 - 2026-02-03
 #### Features
 - (**api**) add interval hint support to poll responses - (dd2ad7c) - Neale Swinnerton
