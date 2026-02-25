@@ -14,6 +14,7 @@
 
 mod config;
 pub use config::parse_config;
+pub use toml;
 
 use std::sync::atomic::{AtomicPtr, Ordering};
 
