@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.4.1 - 2026-04-28
+#### Miscellaneous Chores
+- (**deps**) bump deps - (b42d7dd) - Neale Swinnerton
+- add Justfile with release recipe - (73ceecb) - Neale Swinnerton
+
+- - -
+
 ## v0.3.0 - 2026-02-24
 #### Features
 - (**deps**) update deps and cog config - (25fa8b8) - Neale Swinnerton
