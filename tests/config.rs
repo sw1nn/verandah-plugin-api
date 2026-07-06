@@ -34,7 +34,7 @@ fn test_parse_numeric_config() -> Result<(), PluginError> {
         r#"
 interval = 1000
 count = -5
-rate = 3.14
+rate = 2.5
 "#,
     );
 
@@ -44,7 +44,7 @@ rate = 3.14
         Config {
             interval: 1000,
             count: -5,
-            rate: 3.14
+            rate: 2.5
         }
     );
     Ok(())
@@ -157,6 +157,7 @@ fn test_parse_renamed_field() -> Result<(), PluginError> {
 fn test_invalid_numeric_fails() {
     #[derive(Deserialize, Debug)]
     struct Config {
+        #[allow(dead_code)]
         interval: u64,
     }
 

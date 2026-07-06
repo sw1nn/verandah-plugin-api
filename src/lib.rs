@@ -440,14 +440,13 @@ pub mod prelude {
         export_root_module,
         prefix_type::PrefixTypeTrait,
         sabi_extern_fn,
-        std_types::{RBox, RHashMap, RString, RStr, RVec},
+        std_types::{RBox, RHashMap, RStr, RString, RVec},
     };
     pub use serde::Deserialize;
 
     pub use crate::{
         PLUGIN_API_VERSION, PluginActionSpec, PluginConfig, PluginDuration, PluginError,
-        PluginImage, PluginImageSize, PluginMod, PluginModRef, PluginPollResponse,
-        PluginResult, PluginWidgetState, WidgetPlugin, WidgetPlugin_TO, parse_config,
-        set_logger_impl,
+        PluginImage, PluginImageSize, PluginMod, PluginModRef, PluginPollResponse, PluginResult,
+        PluginWidgetState, WidgetPlugin, WidgetPlugin_TO, parse_config, set_logger_impl,
     };
 }
