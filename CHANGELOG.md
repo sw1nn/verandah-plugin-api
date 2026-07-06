@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v2.0.0 - 2026-07-06
+#### Miscellaneous Chores
+- (**version**) v1.0.0 - (5ce9fe9) - Neale Swinnerton
+
+- - -
+
 ## v1.0.0 - 2026-07-06
 #### Features
 - <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>add action hook (supported_actions/handle_action) to WidgetPlugin - (9908915) - Neale Swinnerton
