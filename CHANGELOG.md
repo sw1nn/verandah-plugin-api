@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v1.0.0 - 2026-07-06
+#### Features
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>add action hook (supported_actions/handle_action) to WidgetPlugin - (9908915) - Neale Swinnerton
+#### Miscellaneous Chores
+- (**deps**) bump versions to latest major.minor - (6fc52c2) - Neale Swinnerton
+#### Style
+- fix rustfmt import ordering and pre-existing clippy lints in config tests - (966a8fd) - Neale Swinnerton
+
+- - -
+
 ## v0.4.1 - 2026-04-28
 #### Miscellaneous Chores
 - (**deps**) bump deps - (b42d7dd) - Neale Swinnerton
