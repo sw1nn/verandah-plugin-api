@@ -302,6 +302,42 @@ impl std::fmt::Display for PluginError {
 
 impl std::error::Error for PluginError {}
 
+/// A named action a plugin can perform in response to a button gesture.
+///
+/// Declared via [`WidgetPlugin::supported_actions`]; the host validates
+/// configured verbs against these and dispatches them to
+/// [`WidgetPlugin::handle_action`].
+#[repr(C)]
+#[derive(StableAbi, Clone, Debug)]
+pub struct PluginActionSpec {
+    /// Verb name used in deck config, e.g. `"toggle"`
+    pub name: RString,
+    /// Human-readable description for logs and future UI surfaces
+    pub description: RString,
+    /// At most one spec per plugin may be the default; it fires on a short
+    /// press when the key has no configured action.
+    pub is_default: bool,
+}
+
+impl PluginActionSpec {
+    pub fn new<N, D>(name: N, description: D) -> Self
+    where
+        N: Into<RString>,
+        D: Into<RString>,
+    {
+        PluginActionSpec {
+            name: name.into(),
+            description: description.into(),
+            is_default: false,
+        }
+    }
+
+    pub fn with_default(mut self) -> Self {
+        self.is_default = true;
+        self
+    }
+}
+
 /// Result type for plugin operations
 pub type PluginResult<T> = RResult<T, PluginError>;
 
@@ -354,6 +390,15 @@ pub trait WidgetPlugin: Send {
     /// is shutting down. Plugins should use this to stop background threads,
     /// close connections, and release any resources.
     fn shutdown(&mut self);
+
+    /// Verbs this plugin can perform. Empty (the common case for passive
+    /// widgets) means the plugin has no actions and never receives
+    /// `handle_action` calls.
+    fn supported_actions(&self) -> RVec<PluginActionSpec>;
+
+    /// Perform the behaviour bound to `verb`. Called on the host's widget
+    /// poll thread; after `ROk` the host immediately re-polls and re-renders.
+    fn handle_action(&mut self, verb: RStr<'_>) -> PluginResult<()>;
 }
 
 /// The root module that plugins must export
@@ -395,13 +440,14 @@ pub mod prelude {
         export_root_module,
         prefix_type::PrefixTypeTrait,
         sabi_extern_fn,
-        std_types::{RBox, RHashMap, RString},
+        std_types::{RBox, RHashMap, RString, RStr, RVec},
     };
     pub use serde::Deserialize;
 
     pub use crate::{
-        PLUGIN_API_VERSION, PluginConfig, PluginDuration, PluginError, PluginImage,
-        PluginImageSize, PluginMod, PluginModRef, PluginPollResponse, PluginResult,
-        PluginWidgetState, WidgetPlugin, WidgetPlugin_TO, parse_config, set_logger_impl,
+        PLUGIN_API_VERSION, PluginActionSpec, PluginConfig, PluginDuration, PluginError,
+        PluginImage, PluginImageSize, PluginMod, PluginModRef, PluginPollResponse,
+        PluginResult, PluginWidgetState, WidgetPlugin, WidgetPlugin_TO, parse_config,
+        set_logger_impl,
     };
 }
