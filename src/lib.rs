@@ -348,6 +348,85 @@ pub type PluginResult<T> = RResult<T, PluginError>;
 /// configuration values like `colors = {fg = "#fff", bg = "#000"}`.
 pub type PluginConfig = RString;
 
+/// The press gesture that is about to run an action.
+#[repr(C)]
+#[derive(StableAbi, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PluginGesture {
+    Short,
+    Long,
+    Double,
+    Repeat,
+}
+
+/// What the host should do with the action configured for a gesture.
+#[repr(C)]
+#[derive(StableAbi, Clone, Debug)]
+pub enum PluginActionDecision {
+    /// Run the configured action.
+    Proceed,
+    /// Run nothing; the plugin has handled the gesture itself.
+    Suppress,
+    /// Run this action instead of the configured one.
+    Replace(PluginHostAction),
+}
+
+/// A host action a plugin can ask for.
+///
+/// A union of the host's key actions (`Exec`, `SendKeys`) and the user-facing
+/// part of the runtime command vocabulary.
+#[repr(C)]
+#[derive(StableAbi, Clone, Debug)]
+pub enum PluginHostAction {
+    /// Run a shell command, as `exec = "..."` in config.
+    Exec(RString),
+    /// Send a syntactical key string, as `send_keys = "..."` in config.
+    SendKeys(RString),
+    /// Push a sub-deck onto the ephemeral stack, e.g. `"desks@NW"`.
+    PushDeck(RString),
+    /// Show a named sub-deck on the top layer, idempotently.
+    TopDeck(RString),
+    /// Pop the current ephemeral sub-deck.
+    PopDeck,
+    /// Set display brightness (0-100).
+    SetBrightness(u8),
+    /// Restore brightness to the configured value.
+    RestoreBrightness,
+    /// Blank the display.
+    Sleep,
+}
+
+/// The feedback the host draws for a key after a gesture.
+#[repr(C)]
+#[derive(StableAbi, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PluginFeedback {
+    /// Use the host policy: flash on a long press or a repeat, nothing otherwise.
+    Default,
+    /// Flash, whatever the gesture.
+    Flash,
+    /// Draw nothing, whatever the gesture.
+    None,
+}
+
+/// A plugin's reply to [`WidgetPlugin::on_gesture`].
+#[repr(C)]
+#[derive(StableAbi, Clone, Debug)]
+pub struct PluginGestureReply {
+    /// What the host does with the configured action.
+    pub action: PluginActionDecision,
+    /// The feedback the host draws.
+    pub feedback: PluginFeedback,
+}
+
+impl PluginGestureReply {
+    /// Run the configured action with the host's default feedback.
+    pub fn proceed() -> Self {
+        PluginGestureReply {
+            action: PluginActionDecision::Proceed,
+            feedback: PluginFeedback::Default,
+        }
+    }
+}
+
 /// The main widget plugin trait
 ///
 /// Plugins implement this trait to provide live widget functionality.
@@ -399,6 +478,18 @@ pub trait WidgetPlugin: Send {
     /// Perform the behaviour bound to `verb`. Called on the host's widget
     /// poll thread; after `ROk` the host immediately re-polls and re-renders.
     fn handle_action(&mut self, verb: RStr<'_>) -> PluginResult<()>;
+
+    /// Called on the widget poll thread immediately before a gesture runs its
+    /// configured action on this key.
+    ///
+    /// The plugin may let the action run, suppress it, replace it, and ask the
+    /// host for feedback. The plugin can do its own work here: it runs with
+    /// `&mut self` on the poll thread.
+    ///
+    /// Default: `Proceed` with `PluginFeedback::Default`.
+    fn on_gesture(&mut self, _gesture: PluginGesture) -> PluginResult<PluginGestureReply> {
+        PluginResult::ROk(PluginGestureReply::proceed())
+    }
 }
 
 /// The root module that plugins must export
@@ -445,7 +536,8 @@ pub mod prelude {
     pub use serde::Deserialize;
 
     pub use crate::{
-        PLUGIN_API_VERSION, PluginActionSpec, PluginConfig, PluginDuration, PluginError,
+        PLUGIN_API_VERSION, PluginActionDecision, PluginActionSpec, PluginConfig, PluginDuration,
+        PluginError, PluginFeedback, PluginGesture, PluginGestureReply, PluginHostAction,
         PluginImage, PluginImageSize, PluginMod, PluginModRef, PluginPollResponse, PluginResult,
         PluginWidgetState, WidgetPlugin, WidgetPlugin_TO, parse_config, set_logger_impl,
     };
