@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v2.1.0 - 2026-10-16
+#### Features
+- (**api**) add gesture reply hook to WidgetPlugin - (8996ae6) - Neale Swinnerton
+
+- - -
+
 ## v2.0.0 - 2026-07-06
 #### Miscellaneous Chores
 - (**version**) v1.0.0 - (5ce9fe9) - Neale Swinnerton
